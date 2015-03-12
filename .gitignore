@@ -1,6 +1,7 @@
 .gradle
 build/
-
+.idea
+gpars_learning.iml
 # Ignore Gradle GUI config
 gradle-app.setting
 
