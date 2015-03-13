@@ -1,47 +1,42 @@
 package test.gpars.server
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import groovy.util.logging.Log
+import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
+import test.gpars.server.actors.SessionActor
 
+
+@Slf4j
 class ThreadedSocketServer implements Runnable {
 
     protected int          serverPort   = 8080;
     protected ServerSocket serverSocket = null;
     protected boolean      isStopped    = false;
-    //protected Thread       runningThread = null;
-    protected ExecutorService threadPool = Executors.newFixedThreadPool(10);
-
-    def receivedMessages = []
+    def services = SystemServices.instance
 
     public ThreadedSocketServer(int port){
         this.serverPort = port;
     }
 
     public void run(){
-        //synchronized(this){
-        //     this.runningThread = Thread.currentThread();
-        //}
         openServerSocket();
         while(! isStopped()){
-            println "server is running!"
+            log.info "server is running!"
             Socket clientSocket = null;
             try {
                 clientSocket = this.serverSocket.accept();
+                log.info "adding client to executor"
+                services.addTaskToThreadPool(new AbstractWorker(clientSocket, SessionActor), "new client connection")
             } catch (IOException e) {
                 if(isStopped()) {
-                    System.out.println("Server Stopped.") ;
+                    log.info("Server Stopped.") ;
                     break;
                 }
                 throw new RuntimeException(
                     "Error accepting client connection", e);
             }
-            println "adding client to executor"
-            this.threadPool.execute(
-                new AbstractWorker(clientSocket, receivedMessages))
-            //"Thread Pooled Server"));
         }
-        this.threadPool.shutdown();
-        System.out.println("Server Stopped.") ;
+        log.info("Server Stopped.") ;
     }
 
 
@@ -53,7 +48,7 @@ class ThreadedSocketServer implements Runnable {
         this.isStopped = true;
         try {
             this.serverSocket.close();
-            threadPool.shutdown()
+            services.shutDown()
         } catch (IOException e) {
             throw new RuntimeException("Error closing server", e);
         }

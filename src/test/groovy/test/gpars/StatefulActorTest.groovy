@@ -31,7 +31,7 @@ class StatefulActorTest extends Specification {
         then:
 
         //println ' the msgs= ' + act1.receivedMsgs
-        assertEquals 5, act1.receivedMsgs.size()
+        assertEquals 1, act1.receivedMsgs.size()
 
 
 

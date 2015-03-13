@@ -1,14 +1,18 @@
 package test.gpars
 
-/**
- * Created by David on 3/11/2015.
- */
+import groovy.util.logging.Log
+import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class Client implements Runnable {
 
     Socket conn
     Writer output
     def input
     def listen = true
+    def canWriteToServer = false
+    def status
 
     Client(String host, int port) {
         conn = new Socket(host, port)
@@ -18,24 +22,31 @@ class Client implements Runnable {
     }
 
     void writeToServer(String msg) {
+        if(canWriteToServer) {
+            output.write(msg + "\n")// .write(msg.getBytes())
+            output.flush()
 
-        output.write(msg + "\n")// .write(msg.getBytes())
-
-        output.flush()
-
-        println "client wrote ${msg}"
+            log.info "client wrote ${msg}"
+        }
+        else {
+            log.info "not ready to send ${msg}"
+        }
     }
 
     void run() {
-        println "client now listening"
+        log.info "client now listening"
         while(listen) {
             try {
                 def msg = input.readLine()
                 if (msg) {
-                    println(" received -> ${msg}")
+                    if('server started'.equals(msg)){
+                        canWriteToServer = true
+                    }
+                    status = msg
+                    log.info(" client received -> ${msg}")
                 }
             }catch(Exception e) {
-                println "client dying!"
+                log.info "client dying!"
             }
         }
     }
