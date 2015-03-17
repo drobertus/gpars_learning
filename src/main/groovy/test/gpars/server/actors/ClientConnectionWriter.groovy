@@ -11,10 +11,11 @@ import test.gpars.server.messages.AddMessage
  * messages don't interfere with one another
  */
 @Slf4j
-class WriterActor extends DefaultActor  {
+class ClientConnectionWriter extends DefaultActor  {
 
     Writer outputStream
-    WriterActor(Writer os) {
+
+    ClientConnectionWriter(Writer os) {
         this.outputStream = os
         //this.send()
     }
@@ -25,6 +26,7 @@ class WriterActor extends DefaultActor  {
     @Override
     protected void act() {
         loop {
+            log.info("writer waiting")
             react { theMsg ->
                 log.info 'writer actor got message ' + theMsg
                 outputStream << theMsg + '\n'

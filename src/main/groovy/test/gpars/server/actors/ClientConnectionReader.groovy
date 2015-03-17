@@ -8,13 +8,13 @@ import test.gpars.server.messages.MessageConverter
  * then fires appropriate messages back to the SessionActor
  */
 @Slf4j
-class ReaderActor implements Runnable {
+class ClientConnectionReader implements Runnable {
 
     final Reader reader
-    final SessionActor parent
+    final ClientConnector parent
     def keepReading = true
 
-    ReaderActor(Reader inputStream, SessionActor parent) {
+    ClientConnectionReader(Reader inputStream, ClientConnector parent) {
         reader = inputStream
         this.parent = parent
     }

@@ -13,6 +13,7 @@ class Client implements Runnable {
     def listen = true
     def canWriteToServer = false
     def status
+    def received = []
 
     Client(String host, int port) {
         conn = new Socket(host, port)
@@ -34,7 +35,7 @@ class Client implements Runnable {
     }
 
     void run() {
-        log.info "client now listening"
+       // log.info "client now listening"
         while(listen) {
             try {
                 def msg = input.readLine()
@@ -43,10 +44,11 @@ class Client implements Runnable {
                         canWriteToServer = true
                     }
                     status = msg
-                    log.info(" client received -> ${msg}")
+                    received << msg
+                    //log.info(" client received -> ${msg}")
                 }
             }catch(Exception e) {
-                log.info "client dying!"
+                //log.info "client dying!"
             }
         }
     }

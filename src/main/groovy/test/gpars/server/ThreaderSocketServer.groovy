@@ -1,9 +1,8 @@
 package test.gpars.server
 
-import groovy.util.logging.Log
-import groovy.util.logging.Log4j
 import groovy.util.logging.Slf4j
-import test.gpars.server.actors.SessionActor
+import test.gpars.server.actors.GlobalActor
+import test.gpars.server.actors.ClientConnector
 
 
 @Slf4j
@@ -14,8 +13,11 @@ class ThreadedSocketServer implements Runnable {
     protected boolean      isStopped    = false;
     def services = SystemServices.instance
 
+
     public ThreadedSocketServer(int port){
         this.serverPort = port;
+        services.setGlobalActor(new GlobalActor())
+
     }
 
     public void run(){
@@ -26,7 +28,10 @@ class ThreadedSocketServer implements Runnable {
             try {
                 clientSocket = this.serverSocket.accept();
                 log.info "adding client to executor"
-                services.addTaskToThreadPool(new AbstractWorker(clientSocket, SessionActor), "new client connection")
+                def clientConn = new ClientConnector(clientSocket, services.globalActor)
+                clientConn.start()
+                services.addSessionActor(clientConn.name, clientConn)
+                //services.addTaskToThreadPool(worker, "new client connection " + UUID.randomUUID().toString())
             } catch (IOException e) {
                 if(isStopped()) {
                     log.info("Server Stopped.") ;
