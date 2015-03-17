@@ -1,9 +1,9 @@
 package test.gpars.conn
 
-import groovy.util.logging.Log
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 import test.gpars.Client
+import test.gpars.CountdownTimer
 import test.gpars.server.SystemServices
 import test.gpars.server.ThreadedSocketServer
 
@@ -17,8 +17,6 @@ class ClientServerTest extends Specification {
     def serverPort = 6545
     ThreadedSocketServer server
     List<Client> clients = []
-    //Client client
-    Thread srvThread
     List<Thread> clntThreads = []
 
     def "test client and server messaging"() {
@@ -34,9 +32,6 @@ class ClientServerTest extends Specification {
                 sleep 50
                 log.debug 'waiting'
             }
-//            client.received.each{
-//                println 'client msg = ' + it
-//            }
         then:
 
             assertEquals expectedString, client.status
@@ -69,14 +64,14 @@ class ClientServerTest extends Specification {
 
         when: "we get all the clients sending numbers"
             def sendStart = System.currentTimeMillis()
+            int callCount = 0
             loopCount.times { loop ->
                 clientCount.times { client ->
-                   // srvs.addTaskToThreadPool({
-                        clients[client].writeToServer("add ${loop}".toString())
-                    //}, "${client}-${loop}")
+                    clients[client].writeToServer("add ${loop}".toString())
+                    callCount ++
                 }
             }
-            println( "sendTime took -> ${System.currentTimeMillis() - sendStart}")
+            log.info( "sendTime took -> ${System.currentTimeMillis() - sendStart}")
 
             def timer = new CountdownTimer(4000)
             def start = System.currentTimeMillis()
@@ -84,21 +79,16 @@ class ClientServerTest extends Specification {
                 sleep 50
             }
             log.info("Execution time after sends took ${System.currentTimeMillis() - start} ms")
-
+            log.info("Total time to send and process ${callCount} messages: ${System.currentTimeMillis() - sendStart} ms")
 
         then: 'we get the expected result'
             assertEquals expectedTotal.get(), global.globalValue.toInteger()
-            clients.each {
-                println "finalStatus => ${it.status}"
-            }
+
     }
 
     def setup() {
         server = new ThreadedSocketServer(serverPort)
-        //srvThread =
         Thread.start {server.run()}
-
-
     }
 
     Client createClient() {
@@ -122,30 +112,10 @@ class ClientServerTest extends Specification {
         clntThreads.each {
             it.interrupt()
         }
-
         server.stop()
-//        srvThread.interrupt()
     }
 
 
-    class CountdownTimer {
-        final def countdown
-        def endTime
-        CountdownTimer(long time){
-            countdown = time
-        }
 
-        void start(){
-            endTime = System.currentTimeMillis() + countdown
-        }
-
-        boolean hasExpired() {
-            if(!endTime) {
-                start()
-            }
-            return System.currentTimeMillis() > endTime
-        }
-
-    }
 
 }
