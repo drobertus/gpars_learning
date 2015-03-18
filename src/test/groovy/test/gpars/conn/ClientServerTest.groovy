@@ -38,7 +38,12 @@ class ClientServerTest extends Specification {
 
     }
 
-
+    /**
+     * Here we use connections and a common global value, each represented
+     * and handled via actor.  Each client send numbers to be summed at the global
+     * level.
+     * @return
+     */
     def "test multiple clients talking to the same server"() {
 
         setup:
@@ -50,7 +55,7 @@ class ClientServerTest extends Specification {
             def srvs = SystemServices.instance
             def global = srvs.globalActor
 
-        clientCount.times { client ->
+            clientCount.times { client ->
                 clients << createClient()
                 def aSet = []
                 loopCount.times { loop ->
@@ -60,7 +65,7 @@ class ClientServerTest extends Specification {
                 dataSets << aSet
             }
 
-            println "expected total => ${expectedTotal.get()}"
+            log.info "expected total => ${expectedTotal.get()}"
 
         when: "we get all the clients sending numbers"
             def sendStart = System.currentTimeMillis()

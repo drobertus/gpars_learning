@@ -22,7 +22,7 @@ class ForkJoinPoolTest {
 
     @Test
     void testLargeArraySumming() {
-        int theSize = 2000000
+        int theSize = 100000
         def intArray = new ArrayList<Integer>(theSize)
 
         Random rand = new Random()
@@ -45,7 +45,7 @@ class ForkJoinPoolTest {
         final AtomicInteger result = new AtomicInteger(0)
         //long result = 0;
         start = System.currentTimeMillis()
-        withPool( 50 ) {
+        withPool( 20 ) {
             intArray.eachParallel{ result.getAndAdd(it)}
         }
         end = System.currentTimeMillis()
